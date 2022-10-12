@@ -1,0 +1,1 @@
+from .stupid_box import StupidBox
