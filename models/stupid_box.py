@@ -19,6 +19,12 @@ class StupidBox(Model):
             if n.name == name:
                 return n
             
+    def __compose_transform_matrix(self, translation, rotation):
+        M = rotation
+        M[0:3, 3] = translation[0:3, 3]
+        return M
+        
+            
 
     def __build_model(self):
         self.scene = pyrender.Scene(ambient_light=np.array([0.02, 0.02, 0.02, 1.0]))
@@ -41,26 +47,30 @@ class StupidBox(Model):
         box_1 = trimesh.creation.box(extents=np.array([0.3, 0.3, 0.5]))
         box_1.visual.face_colors = np.array([0, 1., 0, 0.8])
         box_1_mesh = pyrender.Mesh.from_trimesh(box_1, smooth=False)
-        box_1_translation = np.array([0.5, 1.2, 0.25 + 0.001])
-        box_1_rotation = transforms.rotation_matrix(np.pi/3, [1, 0, 0], box_1_mesh.centroid)
+        box_1_translation = transforms.translation_matrix(np.array([0.5, 1.2, 0.25 + 0.001]))
+        box_1_rotation = transforms.rotation_matrix(np.pi/3, [0, 0, 1], box_1_mesh.centroid)
+        
+        box_1_matrix = self.__compose_transform_matrix(box_1_translation, box_1_rotation)
+        
+        print(box_1_matrix)
         
         self.scene.add_node(
-            pyrender.Node(name="box_1", mesh=box_1_mesh, translation=box_1_translation, 
-                          rotation=transforms.quaternion_from_matrix(box_1_rotation))
+            pyrender.Node(name="box_1", mesh=box_1_mesh, matrix=box_1_matrix)
         )
         
         box_2 = trimesh.creation.box(extents=np.array([0.05, 0.15, 0.2]))
         box_2.visual.face_colors = np.array([1., 0, 0, 0.6])
         box_2_mesh = pyrender.Mesh.from_trimesh(box_2, smooth=False)
-        box_2_translation = np.array([0, 0, 0.1 + 0.25]) + self.__get_node_by_name("box_1").translation
-        box_2_rotation = transforms.rotation_matrix(0, [1, 0, 0], box_2_mesh.centroid) * box_1_rotation
         
-        print(box_1_rotation)
-        print(box_2_rotation)
+        box_2_translation = transforms.translation_matrix(np.array([0, 0, 0.1 + 0.25]))
+        box_2_rotation = transforms.rotation_matrix(3*np.pi/4, [0, 0, 1], box_2_mesh.centroid)
+        
+        box_2_matrix = np.matmul(self.__get_node_by_name("box_1").matrix, self.__compose_transform_matrix(box_2_translation, box_2_rotation))
+        
+        print(box_2_matrix)
         
         self.scene.add_node(
-            pyrender.Node(name="box_2", mesh=box_2_mesh, translation= box_2_translation, 
-                          rotation=transforms.quaternion_from_matrix(box_2_rotation))
+            pyrender.Node(name="box_2", mesh=box_2_mesh, matrix=box_2_matrix)
         )
         
         print(self.scene.nodes)
