@@ -35,12 +35,12 @@ class StupidBox(Model):
         plane.visual.face_colors = np.array([0.5, 0.5, 0.5, 0.5])
         plane_mesh = pyrender.Mesh.from_trimesh(plane, smooth=False)
         
-        axis = trimesh.creation.axis(origin_color=[1., 0, 0])
-        axis_mesh = pyrender.Mesh.from_trimesh(axis, smooth=False)
-        
         self.scene.add_node(
             pyrender.Node(name="plane", mesh=plane_mesh)
         )
+        
+        axis = trimesh.creation.axis(origin_color=[1., 0, 0])
+        axis_mesh = pyrender.Mesh.from_trimesh(axis, smooth=False)
         
         self.scene.add_node(
             pyrender.Node(name="axis", mesh=axis_mesh)
