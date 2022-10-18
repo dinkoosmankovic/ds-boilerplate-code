@@ -10,7 +10,7 @@ class StupidBox(Model):
     def __init__(self) -> None:
         Model.__init__(self)
         self.scene = None
-        self.state = 0
+        self.state = [0, 0]
         self.__build_model()
         
     def __get_node_by_name(self, name):
@@ -49,8 +49,10 @@ class StupidBox(Model):
         box_1 = trimesh.creation.box(extents=np.array([0.3, 0.3, 0.5]))
         box_1.visual.face_colors = np.array([0, 1., 0, 0.8])
         box_1_mesh = pyrender.Mesh.from_trimesh(box_1, smooth=False)
-        box_1_translation = transforms.translation_matrix(np.array([0.5, 1.2, 0.25 + 0.001]))
-        box_1_rotation = transforms.rotation_matrix(np.pi/3, [0, 0, 1], box_1_mesh.centroid)
+        
+        x, y = 2 * np.cos(self.state[0]), 2 * np.sin(self.state[0])
+        box_1_translation = transforms.translation_matrix(np.array([x, y, 0.25 + 0.001]))
+        box_1_rotation = transforms.rotation_matrix(0, [0, 0, 1], box_1_mesh.centroid)
         
         box_1_matrix = self.__compose_transform_matrix(box_1_translation, box_1_rotation)
         
@@ -76,7 +78,7 @@ class StupidBox(Model):
         box_3_mesh = pyrender.Mesh.from_trimesh(box_3, smooth=False)
         
         box_3_translation = transforms.translation_matrix(np.array([0, 0, 0.1 + 0.025]))
-        box_3_rotation = transforms.rotation_matrix(self.state, [0, 0, 1], box_3_mesh.centroid)
+        box_3_rotation = transforms.rotation_matrix(self.state[1], [0, 0, 1], box_3_mesh.centroid)
         
         box_3_matrix = np.matmul(self.__get_node_by_name("box_2").matrix, self.__compose_transform_matrix(box_3_translation, box_3_rotation))
         
@@ -94,7 +96,7 @@ class StupidBox(Model):
                             use_raymond_lighting=True)
         t = 0
         while v.is_active or t < final_time:
-            self.step(u=0.1, dt=dt)
+            self.step(u=[0.4, 0.1], dt=dt)
             v.render_lock.acquire()
             self.__update_model()
             v.render_lock.release()
@@ -102,13 +104,29 @@ class StupidBox(Model):
             time.sleep(dt)
             
 
-    def step(self, u=0, dt=0.1):
-        self.state += u
+    def step(self, u=[0,0], dt=0.1):
+        self.state[0] += u[0]
+        self.state[1] += u[1]
         
     def __update_model(self):
+        origin = self.__get_node_by_name("box_1").mesh.centroid
+        x, y = 2 * np.cos(self.state[0] / 10), 2 * np.sin(self.state[0] / 10)
+        box_1_translation = transforms.translation_matrix(np.array([x, y, 0.25 + 0.001]))
+        box_1_rotation = transforms.rotation_matrix(0, [0, 0, 1], origin)
+                
+        box_1_matrix = self.__compose_transform_matrix(box_1_translation, box_1_rotation)
+        self.__get_node_by_name("box_1").matrix = box_1_matrix
+        
+        origin = self.__get_node_by_name("box_2").mesh.centroid
+        box_2_translation = transforms.translation_matrix(np.array([0, 0, 0.1 + 0.25]))
+        box_2_rotation = transforms.rotation_matrix(3*np.pi/4, [0, 0, 1], origin)
+        
+        box_2_matrix = np.matmul(self.__get_node_by_name("box_1").matrix, self.__compose_transform_matrix(box_2_translation, box_2_rotation))
+        self.__get_node_by_name("box_2").matrix = box_2_matrix
+        
         origin = self.__get_node_by_name("box_3").mesh.centroid
         box_3_translation = transforms.translation_matrix(np.array([0, 0, 0.1 + 0.025]))
-        box_3_rotation = transforms.rotation_matrix(self.state, [0, 0, 1], origin)
+        box_3_rotation = transforms.rotation_matrix(self.state[1], [0, 0, 1], origin)
         
         box_3_matrix = np.matmul(self.__get_node_by_name("box_2").matrix, self.__compose_transform_matrix(box_3_translation, box_3_rotation))
         self.__get_node_by_name("box_3").matrix = box_3_matrix
