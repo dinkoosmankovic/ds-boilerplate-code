@@ -12,6 +12,7 @@ or even better if you **fork it** and use your own repo.
 git clone https://github.com/dinkoosmankovic/ds-boilerplate-code my-project
 ```
 ## Setup virtual environment
+```
 python3 -m venv
 cd my-project
 mkdir venv
