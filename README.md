@@ -33,6 +33,9 @@ pip install -r requirements.txt
 ```
 python3 main.py
 ```
+You should get the following screen:
+
+![App Window](/img/screenshot.png)
 
 **You can also setup Visual Studio Code IDE with Python extensions. Then select Python interpreter inside venv folder and run main.py from VS Code.***
 
