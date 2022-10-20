@@ -116,18 +116,19 @@ class StupidBox(Model):
         if not offline:
             v = pyrender.Viewer(self.scene, use_raymond_lighting=True)
         else:
-            import matplotlib.pyplot as plt
+            from PIL import Image
             cam = pyrender.PerspectiveCamera(yfov=(np.pi / 3.0))
             cam_pose = self.__compute_initial_camera_pose()
+            light = pyrender.light.SpotLight(color=np.array([255, 255, 255]), intensity=100)
             cam_node = self.scene.add(cam, pose=cam_pose)
+            light_node = self.scene.add(light, pose=cam_pose)
 
             r = pyrender.OffscreenRenderer(640, 480)
             color, depth = r.render(self.scene, pyrender.RenderFlags.RGBA)
             r.delete()
-            plt.figure()
-            plt.axis('off')
-            plt.imshow(color)
-            plt.show()
+            img = Image.fromarray(color, 'RGBA')
+            img.show()
+            
 
     def integrate(self, final_time=10, dt=0.1) -> None:
         v = pyrender.Viewer(self.scene, run_in_thread=True,

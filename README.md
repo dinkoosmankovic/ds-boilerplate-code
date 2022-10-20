@@ -39,7 +39,7 @@ You should get the following screen:
 
 ## Software rendering
 
-For software rendering use the following command with show_box() method to show matplotlib window with the scene (NOT RECOMMENDED):
+For software rendering use the following command with show_box() method to show PIL window with the scene (NOT RECOMMENDED):
 ```
 MESA_GL_VERSION_OVERRIDE=4.1 PYOPENGL_PLATFORM=egl python3 main.py
 ```
