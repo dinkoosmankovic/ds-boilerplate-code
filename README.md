@@ -37,6 +37,13 @@ You should get the following screen:
 
 ![App Window](/img/screenshot.png)
 
+## Software rendering
+
+For software rendering use the following command with show_box() method to show matplotlib window with the scene (NOT RECOMMENDED):
+```
+MESA_GL_VERSION_OVERRIDE=4.1 PYOPENGL_PLATFORM=egl python3 main.py
+```
+
 **You can also setup Visual Studio Code IDE with Python extensions. Then select Python interpreter inside venv folder and run main.py from VS Code.***
 
 

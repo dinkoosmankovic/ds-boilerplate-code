@@ -86,10 +86,48 @@ class StupidBox(Model):
             pyrender.Node(name="box_3", mesh=box_3_mesh, matrix=box_3_matrix)
         )       
 
-        
+    def __compute_initial_camera_pose(self):
+        centroid = self.scene.centroid
+        #if self.viewer_flags['view_center'] is not None:
+        #    centroid = self.viewer_flags['view_center']
+        scale = self.scene.scale
+        if scale == 0.0:
+            scale = 2.0
+
+        s2 = 1.0 / np.sqrt(2.0)
+        cp = np.eye(4)
+        cp[:3,:3] = np.array([
+            [0.0, -s2, s2],
+            [1.0, 0.0, 0.0],
+            [0.0, s2, s2]
+        ])
+        hfov = np.pi / 6.0
+        dist = scale / (2.0 * np.tan(hfov))
+        cp[:3,3] = dist * np.array([1.0, 0.0, 1.0]) + centroid
+
+        return cp
 
     def show_box(self):
-        v = pyrender.Viewer(self.scene, use_raymond_lighting=True)
+        offline = False
+        import os 
+        if os.environ["PYOPENGL_PLATFORM"] == 'egl' and \
+            os.environ["MESA_GL_VERSION_OVERRIDE"] == '4.1':
+            offline = True
+        if not offline:
+            v = pyrender.Viewer(self.scene, use_raymond_lighting=True)
+        else:
+            import matplotlib.pyplot as plt
+            cam = pyrender.PerspectiveCamera(yfov=(np.pi / 3.0))
+            cam_pose = self.__compute_initial_camera_pose()
+            cam_node = self.scene.add(cam, pose=cam_pose)
+
+            r = pyrender.OffscreenRenderer(640, 480)
+            color, depth = r.render(self.scene, pyrender.RenderFlags.RGBA)
+            r.delete()
+            plt.figure()
+            plt.axis('off')
+            plt.imshow(color)
+            plt.show()
 
     def integrate(self, final_time=10, dt=0.1) -> None:
         v = pyrender.Viewer(self.scene, run_in_thread=True,
